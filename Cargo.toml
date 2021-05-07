@@ -1,0 +1,8 @@
+[package]
+name = "stated"
+version = "0.1.0"
+authors = ["Stuart Thompson <stuart@stuartthompson.net>"]
+edition = "2018"
+
+[dependencies]
+crossterm = "0.19"
