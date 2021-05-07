@@ -1,8 +1,10 @@
 use std::io::{self, Write};
 mod bars;
+mod core_data;
 mod screens;
 
 use bars::{EditorInfoBar, StatusBar};
+use core_data::{CoreData, DimensionsSubscriber};
 use screens::home_screen;
 
 pub use crossterm::{
@@ -12,6 +14,33 @@ pub use crossterm::{
     terminal::{self, ClearType, size},
     Command, Result,
 };
+
+pub struct Program<'a> {
+    core_data: CoreData<'a>,
+    editor_info_bar: EditorInfoBar,
+    status_bar: StatusBar<'a>,
+}
+
+impl<'a> Program<'a> {
+    pub fn new() -> Program<'a> {
+        let core_data = CoreData::new();
+        let editor_info_bar = EditorInfoBar::new(49);
+        let status_bar = StatusBar::new(50);
+        Program {
+            core_data,
+            editor_info_bar,
+            status_bar
+        }
+    }
+
+    pub fn render_bars<W>(&mut self, w: &mut W)
+    where
+        W: Write
+    {
+        self.editor_info_bar.render(w, &self.core_data);
+        self.status_bar.render(w, &self.core_data);
+    }
+}
 
 pub fn read_char() -> Result<char> {
     loop {
@@ -33,15 +62,16 @@ where
 
     terminal::enable_raw_mode()?;
 
-    let (cols, rows) = size()?;
+    // Create program
+    let mut program: Program = Program::new();
 
-    // Create bars
-    let editor_info_bar: EditorInfoBar = EditorInfoBar::new(rows - 1, cols, rows);
-    let status_bar: StatusBar = StatusBar::new(rows - 2, "test.md");
+    // Initialize core data
+    let (cols, rows) = size()?;
+    program.core_data.set_dimensions(cols, rows);
+    program.core_data.set_file_path("test.md");
 
     // Render bars
-    editor_info_bar.render(w);
-    status_bar.render(w);
+    program.render_bars(w);
 
     // Render current screen
     home_screen::render(w);
@@ -55,11 +85,16 @@ where
                     style::SetForegroundColor(style::Color::White),
                     style::SetBackgroundColor(style::Color::Black),
                     style::Print("Edit"),
-                )?
+                )?;
+                let (cols, rows) = size()?;
+                program.core_data.set_dimensions(cols, rows);
             },
             'q' => break,
             _ => {}
         };
+
+        // Render bars
+        program.render_bars(w);
 
         w.flush()?;
     }
