@@ -1,30 +1,20 @@
-use std::io::Write;
-use crossterm::{cursor, queue, style};
 use crate::CoreData;
+use super::Bar;
 
-pub struct StatusBar<'a> {
+pub struct StatusBar {
     render_row_ix: u16,
-    file_path: &'a str,
 }
 
-impl<'a> StatusBar<'a> {
-    pub fn new(render_row_ix: u16) -> StatusBar<'a> {
+impl Bar for StatusBar {
+    fn render(&self, core_data: &CoreData) -> String {
+        format!("[Status] File path: {}", core_data.get_file_path())
+    }
+}
+
+impl StatusBar {
+    pub fn new(render_row_ix: u16) -> StatusBar {
         StatusBar {
             render_row_ix,
-            file_path: ""
         }
-    }
-
-    /// Renders the status bar
-    pub fn render<W>(&self, w: &mut W, core_data: &CoreData)
-    where
-        W: Write,
-    {
-        queue!(
-            w,
-            cursor::MoveTo(0, self.render_row_ix),
-            style::Print("Status Bar"),
-            style::Print(format!("File path: {}", core_data.get_file_path())),
-        ).unwrap();
     }
 }
