@@ -1,8 +1,6 @@
 # STATED
 
-Stu Thompson's Awesome Text EDitor
-
-A text editor for me.
+A chance to learn about the crossterm-rs crate.
 
 ## Why?
 
