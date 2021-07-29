@@ -1,9 +1,9 @@
 use crate::CoreData;
 
-mod editor_info_bar;
+mod performance_bar;
 mod status_bar;
 
-pub use editor_info_bar::EditorInfoBar;
+pub use performance_bar::PerformanceBar;
 pub use status_bar::StatusBar;
 
 /// Bars render status information
