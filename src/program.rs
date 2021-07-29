@@ -8,22 +8,25 @@ use crossterm::{
 };
 
 use crate::CoreData;
-use crate::bars::{Bar, EditorInfoBar, StatusBar};
+use crate::bars::{Bar, PerformanceBar, StatusBar};
+use crate::editor::{Editor};
 use crate::screens::home_screen;
 
-pub struct Program<'a> {
-    core_data: CoreData<'a>,
+pub struct Program {
+    core_data: CoreData,
+    editor: Editor,
     bars: Vec<Box<dyn Bar>>,
     running: bool,
     cursor_x: u16,
     cursor_y: u16,
 }
 
-impl<'a> Program<'a> {
+impl Program {
     /// Program initialization
-    pub fn new() -> Program<'a> {
+    pub fn new() -> Program {
         Program {
             core_data: CoreData::new(),
+            editor: Editor::new(),
             bars: Vec::new(),
             running: false,
             cursor_x: 0,
@@ -101,9 +104,6 @@ impl<'a> Program<'a> {
                             self.cursor_x += 1;
                         }
                     }
-                    if event == KeyCode::Char('s').into() {
-                        std::thread::sleep(Duration::from_millis(5000));
-                    }
                     if event == KeyCode::Char('q').into() {
                         self.running = false;
                     }
@@ -117,13 +117,13 @@ impl<'a> Program<'a> {
 
     /// Handles window resize events
     fn handle_resize(&mut self, width: u16, height: u16) {
-        self.core_data.set_dimensions(width, height);
+        self.editor.resize(width, height);
     }
 
     /// Creates status bars
     fn create_bars(&mut self) {
-        self.bars.push(Box::new(EditorInfoBar::new(49)));
-        self.bars.push(Box::new(StatusBar::new(50)));
+        self.bars.push(Box::new(StatusBar::new(1)));
+        self.bars.push(Box::new(PerformanceBar::new(2)));
     }
 
     /// Renders status bars
@@ -131,7 +131,7 @@ impl<'a> Program<'a> {
     where
         W: Write
     {
-        let mut bar_row = 48;
+        let mut bar_row = 20;
         for bar in &self.bars {
             queue!(
                 w,

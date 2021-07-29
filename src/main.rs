@@ -1,5 +1,6 @@
 mod bars;
 mod core_data;
+mod editor;
 mod screens;
 mod program;
 
