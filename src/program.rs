@@ -9,7 +9,7 @@ use crossterm::{
 
 use crate::CoreData;
 use crate::bars::{Bar, PerformanceBar, StatusBar};
-use crate::editor::{Editor};
+use crate::editor::{Editor, Dimensions};
 use crate::screens::home_screen;
 
 pub struct Program {
@@ -26,7 +26,7 @@ impl Program {
     pub fn new() -> Program {
         Program {
             core_data: CoreData::new(),
-            editor: Editor::new(),
+            editor: Editor::new(Dimensions::new(80, 24)),
             bars: Vec::new(),
             running: false,
             cursor_x: 0,
@@ -117,7 +117,7 @@ impl Program {
 
     /// Handles window resize events
     fn handle_resize(&mut self, width: u16, height: u16) {
-        self.editor.resize(width, height);
+        self.editor.resize(Dimensions::new(width, height));
     }
 
     /// Creates status bars
