@@ -8,22 +8,27 @@ use crossterm::{
 };
 
 use crate::CoreData;
-use crate::bars::{Bar, EditorInfoBar, StatusBar};
+use crate::bars::{Bar, PerformanceBar, StatusBar};
+use crate::editor::{Editor, Dimensions};
 use crate::screens::home_screen;
 
-pub struct Program<'a> {
-    core_data: CoreData<'a>,
+pub struct Program {
+    core_data: CoreData,
+    // TODO: This should be a vector of editors.
+    editor: Editor,
     bars: Vec<Box<dyn Bar>>,
     running: bool,
     cursor_x: u16,
     cursor_y: u16,
 }
 
-impl<'a> Program<'a> {
+impl Program {
     /// Program initialization
-    pub fn new() -> Program<'a> {
+    pub fn new() -> Program {
         Program {
             core_data: CoreData::new(),
+            // TODO: Should be a vector of editors
+            editor: Editor::new(Dimensions::new(80, 24)),
             bars: Vec::new(),
             running: false,
             cursor_x: 0,
@@ -82,27 +87,28 @@ impl<'a> Program<'a> {
             match read().unwrap() {
                 Event::Key(event) => {
                     if event == KeyCode::Char('h').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_x > 0 {
                             self.cursor_x -= 1;
                         }
                     }
                     if event == KeyCode::Char('j').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_y < 48 {
                             self.cursor_y += 1;
                         }
                     }
                     if event == KeyCode::Char('k').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_y > 0 {
                             self.cursor_y -= 1;
                         }
                     }
                     if event == KeyCode::Char('l').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_x < 50 {
                             self.cursor_x += 1;
                         }
-                    }
-                    if event == KeyCode::Char('s').into() {
-                        std::thread::sleep(Duration::from_millis(5000));
                     }
                     if event == KeyCode::Char('q').into() {
                         self.running = false;
@@ -117,13 +123,14 @@ impl<'a> Program<'a> {
 
     /// Handles window resize events
     fn handle_resize(&mut self, width: u16, height: u16) {
-        self.core_data.set_dimensions(width, height);
+        // TODO: Should resize all editors according to their allocations
+        self.editor.resize(Dimensions::new(width, height));
     }
 
     /// Creates status bars
     fn create_bars(&mut self) {
-        self.bars.push(Box::new(EditorInfoBar::new(49)));
-        self.bars.push(Box::new(StatusBar::new(50)));
+        self.bars.push(Box::new(StatusBar::new(1)));
+        self.bars.push(Box::new(PerformanceBar::new(2)));
     }
 
     /// Renders status bars
@@ -131,7 +138,8 @@ impl<'a> Program<'a> {
     where
         W: Write
     {
-        let mut bar_row = 48;
+        // TODO: Render bars at bottom, according to their priority
+        let mut bar_row = 20; // TODO: <-- This should not be hard-coded
         for bar in &self.bars {
             queue!(
                 w,
