@@ -14,6 +14,7 @@ use crate::screens::home_screen;
 
 pub struct Program {
     core_data: CoreData,
+    // TODO: This should be a vector of editors.
     editor: Editor,
     bars: Vec<Box<dyn Bar>>,
     running: bool,
@@ -26,6 +27,7 @@ impl Program {
     pub fn new() -> Program {
         Program {
             core_data: CoreData::new(),
+            // TODO: Should be a vector of editors
             editor: Editor::new(Dimensions::new(80, 24)),
             bars: Vec::new(),
             running: false,
@@ -85,21 +87,25 @@ impl Program {
             match read().unwrap() {
                 Event::Key(event) => {
                     if event == KeyCode::Char('h').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_x > 0 {
                             self.cursor_x -= 1;
                         }
                     }
                     if event == KeyCode::Char('j').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_y < 48 {
                             self.cursor_y += 1;
                         }
                     }
                     if event == KeyCode::Char('k').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_y > 0 {
                             self.cursor_y -= 1;
                         }
                     }
                     if event == KeyCode::Char('l').into() {
+                        // TODO: Should move cursor within active editor
                         if self.cursor_x < 50 {
                             self.cursor_x += 1;
                         }
@@ -117,6 +123,7 @@ impl Program {
 
     /// Handles window resize events
     fn handle_resize(&mut self, width: u16, height: u16) {
+        // TODO: Should resize all editors according to their allocations
         self.editor.resize(Dimensions::new(width, height));
     }
 
@@ -131,7 +138,8 @@ impl Program {
     where
         W: Write
     {
-        let mut bar_row = 20;
+        // TODO: Render bars at bottom, according to their priority
+        let mut bar_row = 20; // TODO: <-- This should not be hard-coded
         for bar in &self.bars {
             queue!(
                 w,
