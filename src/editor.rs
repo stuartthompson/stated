@@ -189,4 +189,26 @@ mod tests {
 
         assert_eq!(editor.column_ix, 79);
     }
+
+    /// Cursor should be constrained by the top of the render boundary.
+    #[test]
+    fn cursor_constrained_within_editor_top() {
+        let mut editor = Editor::new(Dimensions::new(80, 24));
+
+        // Attempt to move the cursor up (should constrain to 0)
+        editor.move_cursor_up(1);
+
+        assert_eq!(editor.row_ix, 0);
+    }
+
+    /// Cursor should be constrained by the bottom of the render boundary.
+    #[test]
+    fn constrains_cursor_within_editor_bottom() {
+        let mut editor = Editor::new(Dimensions::new(80, 24));
+
+        // Attempt to move the cursor right (should constrain to editor height)
+        editor.move_cursor_down(30);
+
+        assert_eq!(editor.row_ix, 23);
+    }
 }
