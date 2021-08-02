@@ -1,37 +1,67 @@
 mod dimensions;
+mod location;
 
 pub use dimensions::Dimensions;
+pub use location::Location;
+
+use crate::document::TextDocument;
 
 /// An editor hosts a single open document. The program itself may have many
 ///   open editors. Each editor is given a different portion of the screen into
 ///   which it can render its content.
-pub struct Editor {
+pub struct Editor<'a> {
     /// The dimensions allocated to this editor to use to display its contents.
     pub dimensions: Dimensions,
     
-    /// The index of the column where the cursor is currently located.
-    ///
-    /// Zero-based. The 0th column is the left-hand most column.
-    pub column_ix: u16,
+    /// The location of the cursor in this editor.
+    pub cursor_location: Location,
 
-    /// The index of the row where the cursor is currently located.
-    ///
-    /// Zero-based. The 0th row is the top row in the editor.
-    pub row_ix: u16,
+    /// The editor scroll location.
+    pub scroll_location: Location,
+
+    /// The content of the document currently being displayed in this editor.
+    pub content: Option<&'a str>
 }
 
-impl Editor {
+impl<'a> Editor<'a> {
     /// Returns a new Editor.
     /// 
     /// # Arguments
     /// 
-    /// * `columns` - The number of
-    pub fn new(dimensions: Dimensions) -> Editor {
+    /// * `dimensions` - The dimensions of this editor.
+    pub fn new(dimensions: Dimensions) -> Editor<'a> {
         Editor {
             dimensions: dimensions,
-            column_ix: 0,
-            row_ix: 0,
+            cursor_location: Location::default(),
+            scroll_location: Location::default(),
+            content: None
         }
+    }
+
+    /// Sets the content of an editor.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - The editor into which to set content.
+    /// * `document` - A document containing the contents to load.
+    pub fn set_content(&mut self, document: &'a TextDocument) {
+        self.content = Some(document.get_content());
+    }
+
+    /// Gets the content to render in this editor.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - The editor for which to get render content.
+    pub fn get_render_content(&self) -> Vec<&'a str> {
+        let mut result: Vec<&str> = Vec::new();
+        if let Some(content) = self.content {
+            let lines = content.split("\r\n");
+            for line in lines {
+                result.push(line);
+            }
+        }
+        result
     }
 
     /// Resizes the render area for an editor.
@@ -51,11 +81,11 @@ impl Editor {
     /// * `self` - The editor in which to move the cursor.
     /// * `num_columns` - The number of columns to move the cursor left.
     pub fn move_cursor_left(&mut self, num_columns: u16) {
-        if num_columns > self.column_ix {
+        if num_columns > self.cursor_location.column_ix {
             // Ensure cursor remains within editor bounds.
-            self.column_ix = 0;
+            self.cursor_location.column_ix = 0;
         } else {
-            self.column_ix -= num_columns;
+            self.cursor_location.column_ix -= num_columns;
         }
     }
 
@@ -66,12 +96,12 @@ impl Editor {
     /// * `self` - The editor in which to move the cursor.
     /// * `num_columns` - The number of columns to move the cursor right.
     pub fn move_cursor_right(&mut self, num_columns: u16) {
-        if self.column_ix + num_columns > self.dimensions.columns {
+        if self.cursor_location.column_ix + num_columns > self.dimensions.columns {
             // Ensure cursor remains within editor bounds.
             // TODO: Handle horizontal scrolling of document if line is wider than editor.
-            self.column_ix = self.dimensions.columns - 1;
+            self.cursor_location.column_ix = self.dimensions.columns - 1;
         } else {
-            self.column_ix += num_columns;
+            self.cursor_location.column_ix += num_columns;
         }
     }
 
@@ -82,11 +112,11 @@ impl Editor {
     /// * `self` - The editor in which to move the cursor.
     /// * `num_rows` - The number of rows to move the cursor up.
     pub fn move_cursor_up(&mut self, num_rows: u16) {
-        if num_rows > self.row_ix {
+        if num_rows > self.cursor_location.row_ix {
             // Ensure cursor remains within editor bounds.
-            self.row_ix = 0;
+            self.cursor_location.row_ix = 0;
         } else {
-            self.row_ix -= num_rows;
+            self.cursor_location.row_ix -= num_rows;
         }
     }
 
@@ -97,11 +127,11 @@ impl Editor {
     /// * `self` - The editor in which to move the cursor.
     /// * `num_rows` - The number of rows to move the cursor down.
     pub fn move_cursor_down(&mut self, num_rows: u16) {
-        if self.row_ix + num_rows > self.dimensions.rows {
+        if self.cursor_location.row_ix + num_rows > self.dimensions.rows {
             // Ensure cursor remains within editor bounds.
-            self.row_ix = self.dimensions.rows - 1;
+            self.cursor_location.row_ix = self.dimensions.rows - 1;
         } else {
-            self.row_ix += num_rows;
+            self.cursor_location.row_ix += num_rows;
         }
     }
 }
@@ -122,7 +152,7 @@ mod tests {
         editor.move_cursor_left(1);
 
         // Verify that the cursor moved as expected
-        assert_eq!(editor.column_ix, 9);
+        assert_eq!(editor.cursor_location.column_ix, 9);
     }
 
     /// Tests that the editor moves the cursor to the right.
@@ -136,7 +166,7 @@ mod tests {
         editor.move_cursor_right(1);
 
         // Verify that the cursor moved as expected
-        assert_eq!(editor.column_ix, 1);
+        assert_eq!(editor.cursor_location.column_ix, 1);
     }
 
     /// Tests that the editor moves the cursor up.
@@ -151,7 +181,7 @@ mod tests {
         editor.move_cursor_up(1);
 
         // Verify that the cursor moved as expected
-        assert_eq!(editor.row_ix, 2);
+        assert_eq!(editor.cursor_location.row_ix, 2);
     }
 
     /// Tests that the editor moves the cursor down.
@@ -165,7 +195,7 @@ mod tests {
         editor.move_cursor_down(1);
 
         // Verify that the cursor moved as expected
-        assert_eq!(editor.row_ix, 1);
+        assert_eq!(editor.cursor_location.row_ix, 1);
     }
 
     /// Cursor should be constrained by the left side of the render boundary.
@@ -176,7 +206,7 @@ mod tests {
         // Attempt to move the cursor left (should constrain to 0)
         editor.move_cursor_left(1);
 
-        assert_eq!(editor.column_ix, 0);
+        assert_eq!(editor.cursor_location.column_ix, 0);
     }
 
     /// Cursor should be constrained by the right side of the render boundary.
@@ -187,7 +217,7 @@ mod tests {
         // Attempt to move the cursor right (should constrain to editor width)
         editor.move_cursor_right(100);
 
-        assert_eq!(editor.column_ix, 79);
+        assert_eq!(editor.cursor_location.column_ix, 79);
     }
 
     /// Cursor should be constrained by the top of the render boundary.
@@ -198,7 +228,7 @@ mod tests {
         // Attempt to move the cursor up (should constrain to 0)
         editor.move_cursor_up(1);
 
-        assert_eq!(editor.row_ix, 0);
+        assert_eq!(editor.cursor_location.row_ix, 0);
     }
 
     /// Cursor should be constrained by the bottom of the render boundary.
@@ -209,6 +239,24 @@ mod tests {
         // Attempt to move the cursor right (should constrain to editor height)
         editor.move_cursor_down(30);
 
-        assert_eq!(editor.row_ix, 23);
+        assert_eq!(editor.cursor_location.row_ix, 23);
+    }
+
+    /// Gets render content for an empty document.
+    #[test]
+    fn get_render_content_when_editor_empty() {
+        let editor = Editor::new(Dimensions::new(80, 24));
+
+        assert_eq!(editor.get_render_content(), Vec::<&str>::new());
+    }
+
+    /// Gets the render content for a simple document.
+    #[test]
+    fn get_render_content() {
+        let mut editor = Editor::new(Dimensions::new(80, 24));
+        let document = TextDocument::new("Hello\r\nWorld!");
+        editor.set_content(&document);
+
+        assert_eq!(editor.get_render_content(), vec!["Hello", "World!"]);
     }
 }
