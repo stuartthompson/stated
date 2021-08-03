@@ -57,8 +57,16 @@ impl<'a> Editor<'a> {
         let mut result: Vec<&str> = Vec::new();
         if let Some(content) = self.content {
             let lines = content.split("\r\n");
+            
+            // Iterate available lines
+            let mut ix = 0;
             for line in lines {
-                result.push(line);
+                if ix < self.dimensions.rows {
+                    result.push(line);
+                } else {
+                    break;
+                }
+                ix += 1;
             }
         }
         result
@@ -258,5 +266,14 @@ mod tests {
         editor.set_content(&document);
 
         assert_eq!(editor.get_render_content(), vec!["Hello", "World!"]);
+    }
+
+    #[test]
+    fn get_render_content_when_too_tall_to_fit() {
+        let mut editor = Editor::new(Dimensions::new(10, 1));
+        let document = TextDocument::new("First\r\nSecond");
+        editor.set_content(&document);
+
+        assert_eq!(editor.get_render_content(), vec!["First"]);
     }
 }
