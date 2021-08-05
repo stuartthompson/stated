@@ -332,13 +332,24 @@ mod tests {
     }
 
     #[test]
-    fn get_render_content_after_horizontal_scroll() {
+    fn auto_scroll_when_cursor_moved_too_far_right() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
         let document = TextDocument::new("First");
         editor.set_content(&document);
 
         // Move cursor 4 columns to the right (should force scroll)
         editor.move_cursor_right(4);
+        assert_eq!(editor.get_render_content(), vec!["irst"]);
+    }
+
+    #[test]
+    fn auto_scroll_when_cursor_moved_too_far_right_many_times() {
+        let mut editor = Editor::new(Dimensions::new(4, 1));
+        let document = TextDocument::new("First");
+        editor.set_content(&document);
+
+        // Move cursor 4 columns to the right (should force scroll)
+        editor.move_cursor_right(40);
         assert_eq!(editor.get_render_content(), vec!["irst"]);
     }
 }
