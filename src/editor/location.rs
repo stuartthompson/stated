@@ -14,4 +14,8 @@ impl Location {
     pub fn default() -> Location {
         Location { column_ix: 0, row_ix: 0 }
     }
+
+    pub fn new(column_ix: u16, row_ix: u16) -> Location {
+        Location { column_ix: column_ix, row_ix: row_ix }
+    }
 }

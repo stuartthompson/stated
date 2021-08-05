@@ -16,8 +16,8 @@ pub struct Editor<'a> {
     /// The location of the cursor in this editor.
     pub cursor_location: Location,
 
-    /// The editor scroll location.
-    pub scroll_location: Location,
+    /// The amount of scrolling (columns and rows) applied to the editor.
+    pub scroll_amount: Location,
 
     /// The content of the document currently being displayed in this editor.
     pub content: Option<&'a str>
@@ -33,7 +33,7 @@ impl<'a> Editor<'a> {
         Editor {
             dimensions: dimensions,
             cursor_location: Location::default(),
-            scroll_location: Location::default(),
+            scroll_amount: Location::default(),
             content: None
         }
     }
@@ -66,7 +66,7 @@ impl<'a> Editor<'a> {
                     // Dimensions dictate how many columns are visible
                     let cols = self.dimensions.columns as usize;
                     // Determine what part of the line should be rendered
-                    let start = self.scroll_location.column_ix as usize;
+                    let start = self.scroll_amount.column_ix as usize;
                     let mut end = start + cols;
                     if end > line.len() {
                         end = line.len();
@@ -92,8 +92,8 @@ impl<'a> Editor<'a> {
     }
 
     pub fn scroll_to(&mut self, column_ix: u16, row_ix: u16) {
-        self.scroll_location.column_ix = column_ix;
-        self.scroll_location.row_ix = row_ix;
+        self.scroll_amount.column_ix = column_ix;
+        self.scroll_amount.row_ix = row_ix;
     }
 
     /// Moves the cursor to the left a specified number of columns.
@@ -118,9 +118,20 @@ impl<'a> Editor<'a> {
     /// * `self` - The editor in which to move the cursor.
     /// * `num_columns` - The number of columns to move the cursor right.
     pub fn move_cursor_right(&mut self, num_columns: u16) {
-        if self.cursor_location.column_ix + num_columns > self.dimensions.columns {
+        if self.cursor_location.column_ix + num_columns > self.dimensions.columns - 1 {
+            // Check if scroll position needs to be updated
+            if let Some(content) = self.content {
+                let mut lines = content.split("\r\n");
+                let cur_row = self.cursor_location.row_ix as usize;
+                if let Some(line) = &lines.nth(cur_row) {
+                    let end = (self.scroll_amount.column_ix + self.dimensions.columns) as usize;
+                    if line.len() > end {
+                        // Increment scroll position
+                        self.scroll_amount.column_ix += 1;
+                    }
+                }
+            }
             // Ensure cursor remains within editor bounds.
-            // TODO: Handle horizontal scrolling of document if line is wider than editor.
             self.cursor_location.column_ix = self.dimensions.columns - 1;
         } else {
             self.cursor_location.column_ix += num_columns;
@@ -318,5 +329,16 @@ mod tests {
 
         editor.scroll_to(2, 0);
         assert_eq!(editor.get_render_content(), vec!["rst"]);
+    }
+
+    #[test]
+    fn get_render_content_after_horizontal_scroll() {
+        let mut editor = Editor::new(Dimensions::new(4, 1));
+        let document = TextDocument::new("First");
+        editor.set_content(&document);
+
+        // Move cursor 4 columns to the right (should force scroll)
+        editor.move_cursor_right(4);
+        assert_eq!(editor.get_render_content(), vec!["irst"]);
     }
 }
