@@ -61,8 +61,17 @@ impl<'a> Editor<'a> {
             // Iterate available lines
             let mut ix = 0;
             for line in lines {
+                // Only render this line if there is enough space in viewport
                 if ix < self.dimensions.rows {
-                    result.push(line);
+                    // Dimensions dictate how many columns are visible
+                    let cols = self.dimensions.columns as usize;
+                    // Determine what part of the line should be rendered
+                    let start = self.scroll_location.column_ix as usize;
+                    let mut end = start + cols;
+                    if end > line.len() {
+                        end = line.len();
+                    }
+                    result.push(&line[start..end]);
                 } else {
                     break;
                 }
@@ -80,6 +89,11 @@ impl<'a> Editor<'a> {
     /// * `dimensions` - The dimensions describing the updated render area.
     pub fn resize(&mut self, dimensions: Dimensions) {
         self.dimensions = dimensions;
+    }
+
+    pub fn scroll_to(&mut self, column_ix: u16, row_ix: u16) {
+        self.scroll_location.column_ix = column_ix;
+        self.scroll_location.row_ix = row_ix;
     }
 
     /// Moves the cursor to the left a specified number of columns.
@@ -275,5 +289,34 @@ mod tests {
         editor.set_content(&document);
 
         assert_eq!(editor.get_render_content(), vec!["First"]);
+    }
+
+    #[test]
+    fn get_render_content_when_too_wide_to_fit() {
+        let mut editor = Editor::new(Dimensions::new(4, 1));
+        let document = TextDocument::new("First");
+        editor.set_content(&document);
+
+        assert_eq!(editor.get_render_content(), vec!["Firs"]);
+    }
+
+    #[test]
+    fn get_render_content_when_scrolled_width() {
+        let mut editor = Editor::new(Dimensions::new(4, 1));
+        let document = TextDocument::new("First");
+        editor.set_content(&document);
+
+        editor.scroll_to(1, 0);
+        assert_eq!(editor.get_render_content(), vec!["irst"]);
+    }
+
+    #[test]
+    fn get_render_content_when_scrolled_beyond_end_of_content() {
+        let mut editor = Editor::new(Dimensions::new(4, 1));
+        let document = TextDocument::new("First");
+        editor.set_content(&document);
+
+        editor.scroll_to(2, 0);
+        assert_eq!(editor.get_render_content(), vec!["rst"]);
     }
 }
