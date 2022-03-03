@@ -28,7 +28,7 @@ impl<'a> Program<'a> {
         Program {
             core_data: CoreData::new(),
             // TODO: Should be a vector of editors
-            editor: Editor::new(Dimensions::new(80, 24)),
+            editor: Editor::new(Dimensions::new(80, 19)),
             bars: Vec::new(),
             running: false,
             cursor_x: 0,
@@ -62,7 +62,7 @@ impl<'a> Program<'a> {
 
             queue!(
                 w,
-                cursor::MoveTo(self.cursor_x, self.cursor_y)
+                cursor::MoveTo(self.editor.cursor_location.column_ix, self.editor.cursor_location.row_ix)
             )?;
 
             // Flush render queue
@@ -88,27 +88,19 @@ impl<'a> Program<'a> {
                 Event::Key(event) => {
                     if event == KeyCode::Char('h').into() {
                         // TODO: Should move cursor within active editor
-                        if self.cursor_x > 0 {
-                            self.cursor_x -= 1;
-                        }
+                        self.editor.move_cursor_left(1);
                     }
                     if event == KeyCode::Char('j').into() {
                         // TODO: Should move cursor within active editor
-                        if self.cursor_y < 48 {
-                            self.cursor_y += 1;
-                        }
+                        self.editor.move_cursor_down(1);
                     }
                     if event == KeyCode::Char('k').into() {
                         // TODO: Should move cursor within active editor
-                        if self.cursor_y > 0 {
-                            self.cursor_y -= 1;
-                        }
+                        self.editor.move_cursor_up(1);
                     }
                     if event == KeyCode::Char('l').into() {
                         // TODO: Should move cursor within active editor
-                        if self.cursor_x < 50 {
-                            self.cursor_x += 1;
-                        }
+                        self.editor.move_cursor_right(1);
                     }
                     if event == KeyCode::Char('q').into() {
                         self.running = false;

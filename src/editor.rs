@@ -162,7 +162,7 @@ impl<'a> Editor<'a> {
     pub fn move_cursor_down(&mut self, num_rows: u16) {
         if self.cursor_location.row_ix + num_rows > self.dimensions.rows {
             // Ensure cursor remains within editor bounds.
-            self.cursor_location.row_ix = self.dimensions.rows - 1;
+            self.cursor_location.row_ix = self.dimensions.rows;
         } else {
             self.cursor_location.row_ix += num_rows;
         }
