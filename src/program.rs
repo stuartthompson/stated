@@ -12,19 +12,19 @@ use crate::bars::{Bar, PerformanceBar, StatusBar};
 use crate::editor::{Editor, Dimensions};
 use crate::screens::home_screen;
 
-pub struct Program {
+pub struct Program<'a> {
     core_data: CoreData,
     // TODO: This should be a vector of editors.
-    editor: Editor,
+    editor: Editor<'a>,
     bars: Vec<Box<dyn Bar>>,
     running: bool,
     cursor_x: u16,
     cursor_y: u16,
 }
 
-impl Program {
+impl<'a> Program<'a> {
     /// Program initialization
-    pub fn new() -> Program {
+    pub fn new() -> Program<'a> {
         Program {
             core_data: CoreData::new(),
             // TODO: Should be a vector of editors
