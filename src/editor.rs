@@ -293,6 +293,8 @@ mod tests {
         assert_eq!(editor.get_render_content(), vec!["Hello", "World!"]);
     }
 
+    /// Verifies that the editor trims content vertically when the content is 
+    ///  too tall to fit.
     #[test]
     fn get_render_content_when_too_tall_to_fit() {
         let mut editor = Editor::new(Dimensions::new(10, 1));
@@ -302,6 +304,8 @@ mod tests {
         assert_eq!(editor.get_render_content(), vec!["First"]);
     }
 
+    /// Verifies that the editor trims the rendered content when that content
+    ///  is too wide to fit into the render area.
     #[test]
     fn get_render_content_when_too_wide_to_fit() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
@@ -311,6 +315,8 @@ mod tests {
         assert_eq!(editor.get_render_content(), vec!["Firs"]);
     }
 
+    /// Tests that scrolling one character to the right causes the editor to 
+    ///  return the correct render content.
     #[test]
     fn get_render_content_when_scrolled_width() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
@@ -320,7 +326,9 @@ mod tests {
         editor.scroll_to(1, 0);
         assert_eq!(editor.get_render_content(), vec!["irst"]);
     }
-
+    
+    /// Tests that scrolling beyond the end of the current content correctly 
+    ///  loads the scrolled content into view.
     #[test]
     fn get_render_content_when_scrolled_beyond_end_of_content() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
@@ -331,6 +339,8 @@ mod tests {
         assert_eq!(editor.get_render_content(), vec!["rst"]);
     }
 
+    /// Tests that the editor auto-scrolls when the cursor moves beyond the 
+    ///  right of the current content.
     #[test]
     fn auto_scroll_when_cursor_moved_too_far_right() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
@@ -342,14 +352,19 @@ mod tests {
         assert_eq!(editor.get_render_content(), vec!["irst"]);
     }
 
+    /// Tests that the editor auto-scrolls when the cursor moves beyond the 
+    ///  right of the current content.
+    /// 
+    /// Deliberately scrolls far to many times to verify that the editor stops
+    ///  auto-scrolling once the end of the content is reached.
     #[test]
     fn auto_scroll_when_cursor_moved_too_far_right_many_times() {
         let mut editor = Editor::new(Dimensions::new(4, 1));
         let document = TextDocument::new("First");
         editor.set_content(&document);
 
-        // Move cursor 4 columns to the right (should force scroll)
-        editor.move_cursor_right(40);
+        // Attempt to move cursor right 10 times (should force scroll after 4)
+        editor.move_cursor_right(10);
         assert_eq!(editor.get_render_content(), vec!["irst"]);
     }
 }
