@@ -162,7 +162,7 @@ impl<'a> Editor<'a> {
     pub fn move_cursor_down(&mut self, num_rows: u16) {
         if self.cursor_location.row_ix + num_rows > self.dimensions.rows {
             // Ensure cursor remains within editor bounds.
-            self.cursor_location.row_ix = self.dimensions.rows;
+            self.cursor_location.row_ix = self.dimensions.rows - 1;
         } else {
             self.cursor_location.row_ix += num_rows;
         }
@@ -269,7 +269,7 @@ mod tests {
     fn constrains_cursor_within_editor_bottom() {
         let mut editor = Editor::new(Dimensions::new(80, 24));
 
-        // Attempt to move the cursor right (should constrain to editor height)
+        // Attempt to move the cursor down (should constrain to editor height)
         editor.move_cursor_down(30);
 
         assert_eq!(editor.cursor_location.row_ix, 23);
