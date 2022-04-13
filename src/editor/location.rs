@@ -18,4 +18,8 @@ impl Location {
     pub fn new(column_ix: u16, row_ix: u16) -> Location {
         Location { column_ix: column_ix, row_ix: row_ix }
     }
+
+    pub fn from(location: &Location) -> Location {
+        Location { column_ix: location.column_ix, row_ix: location.row_ix }
+    }
 }

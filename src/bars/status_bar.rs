@@ -10,7 +10,13 @@ pub struct StatusBar {
 
 impl Bar for StatusBar {
     fn render(&self, core_data: &CoreData) -> String {
-        format!("[Status] File path: FILE_PATH_HERE")
+        format!(
+            "[Status] File path: FILE_PATH_HERE [Dimensions]: {}, {} [Cursor]: {}, {}",
+            core_data.dimensions().columns,
+            core_data.dimensions().rows, 
+            core_data.cursor_location().column_ix,
+            core_data.cursor_location().row_ix
+        )
     }
 }
 

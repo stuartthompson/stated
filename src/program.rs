@@ -18,8 +18,6 @@ pub struct Program<'a> {
     editor: Editor<'a>,
     bars: Vec<Box<dyn Bar>>,
     running: bool,
-    cursor_x: u16,
-    cursor_y: u16,
 }
 
 impl<'a> Program<'a> {
@@ -28,11 +26,9 @@ impl<'a> Program<'a> {
         Program {
             core_data: CoreData::new(),
             // TODO: Should be a vector of editors
-            editor: Editor::new(Dimensions::new(80, 19)),
+            editor: Editor::new(Dimensions::default()),
             bars: Vec::new(),
             running: false,
-            cursor_x: 0,
-            cursor_y: 0,
         }
     }
 
@@ -70,6 +66,9 @@ impl<'a> Program<'a> {
 
             // Tick
             self.core_data.tick();
+
+            // Update cursor location
+            self.core_data.update_cursor_location(&self.editor.cursor_location);
         }
         execute!(
             w,
@@ -117,6 +116,7 @@ impl<'a> Program<'a> {
     fn handle_resize(&mut self, width: u16, height: u16) {
         // TODO: Should resize all editors according to their allocations
         self.editor.resize(Dimensions::new(width, height));
+        self.core_data.update_dimensions(&self.editor.dimensions);
     }
 
     /// Creates status bars
@@ -131,11 +131,11 @@ impl<'a> Program<'a> {
         W: Write
     {
         // TODO: Render bars at bottom, according to their priority
-        let mut bar_row = 20; // TODO: <-- This should not be hard-coded
+        let mut bar_row = 22; // TODO: <-- This should not be hard-coded
         for bar in &self.bars {
             queue!(
                 w,
-                cursor::MoveTo(1, bar_row),
+                cursor::MoveTo(0, bar_row),
                 style::SetForegroundColor(style::Color::White),
                 style::SetBackgroundColor(style::Color::Black),
                 style::Print(bar.render(&self.core_data)),
