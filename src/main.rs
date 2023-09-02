@@ -5,7 +5,7 @@ mod screens;
 mod document;
 mod program;
 
-use core_data::{CoreData};
+use core_data::CoreData;
 use program::Program;
 
 pub use crossterm::{
