@@ -136,6 +136,7 @@ impl<'a> Program<'a> {
             queue!(
                 w,
                 cursor::MoveTo(0, bar_row),
+                terminal::Clear(terminal::ClearType::CurrentLine),
                 style::SetForegroundColor(style::Color::White),
                 style::SetBackgroundColor(style::Color::Black),
                 style::Print(bar.render(&self.core_data)),
