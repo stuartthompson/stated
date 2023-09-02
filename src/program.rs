@@ -53,6 +53,9 @@ impl<'a> Program<'a> {
             // Check for user input
             self.check_input();
 
+            // Render BG
+            self.render_text_area_bg(w);
+
             // Render bars
             self.render_bars(w);
 
@@ -125,20 +128,38 @@ impl<'a> Program<'a> {
         self.bars.push(Box::new(PerformanceBar::new(2)));
     }
 
+    fn render_text_area_bg<W>(&mut self, w: &mut W)
+    where
+        W: Write
+    {
+        let first_text_row = 0;
+        // TODO: Calculate based upon number of status bars
+        let last_text_row = 20;
+
+        for row in first_text_row..=last_text_row {
+            queue!(
+                w,
+                cursor::MoveTo(0, row),
+                style::SetBackgroundColor(style::Color::DarkBlue),
+                terminal::Clear(terminal::ClearType::CurrentLine),
+            ).unwrap();
+        }
+    }
+
     /// Renders status bars
     fn render_bars<W>(&mut self, w: &mut W)
     where
         W: Write
     {
         // TODO: Render bars at bottom, according to their priority
-        let mut bar_row = 22; // TODO: <-- This should not be hard-coded
+        let mut bar_row = 21; // TODO: <-- This should not be hard-coded
         for bar in &self.bars {
             queue!(
                 w,
                 cursor::MoveTo(0, bar_row),
+                style::SetBackgroundColor(style::Color::Black),
                 terminal::Clear(terminal::ClearType::CurrentLine),
                 style::SetForegroundColor(style::Color::White),
-                style::SetBackgroundColor(style::Color::Black),
                 style::Print(bar.render(&self.core_data)),
             ).unwrap();
             bar_row += 1;
